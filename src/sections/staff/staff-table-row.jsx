@@ -24,9 +24,9 @@ export default function UserTableRow({
   userId,
   userName,
   email,
+  selected,
   roleName,
   counterNumber,
-  selected,
   handleClick,
   getStaff, // Add getStaff prop
 }) {
@@ -212,4 +212,5 @@ UserTableRow.propTypes = {
   handleClick: PropTypes.func.isRequired,
   getStaff: PropTypes.func.isRequired, 
 };
+
 

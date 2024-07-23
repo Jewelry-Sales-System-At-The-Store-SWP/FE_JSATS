@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
@@ -60,10 +60,8 @@ export default function StaffView() {
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
-    if (id !== '') {
-      setOrder(isAsc ? 'desc' : 'asc');
-      setOrderBy(id);
-    }
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(id);
   };
 
   const handleSelectAllClick = (event) => {
@@ -117,8 +115,6 @@ export default function StaffView() {
 
       if (response.status === 200) {
         toast.success('Staff added successfully');
-        const newStaffMember = response.data; // Assuming response.data contains the new staff member object
-        setStaff((prevStaff) => [...prevStaff, newStaffMember]); // Update state with the new staff member
         getStaff();
         setShowStaffForm(false); // Close the form after successful addition
       } else {
@@ -210,7 +206,6 @@ export default function StaffView() {
                   { id: 'email', label: 'Email' },
                   { id: 'roleName', label: 'Role' },
                   { id: 'counterNumber', label: 'Counter Number' },
-                  
                   { id: '', label: '' },
                 ]}
               />
@@ -255,4 +250,3 @@ export default function StaffView() {
     </Container>
   );
 }
-

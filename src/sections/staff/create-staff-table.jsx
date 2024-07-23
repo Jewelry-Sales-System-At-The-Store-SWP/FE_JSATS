@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
 import Select from '@mui/material/Select';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
@@ -11,10 +10,33 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import { InputLabel, FormControl } from '@mui/material';
 import { toast } from 'react-toastify';
+import emailjs from 'emailjs-com';
+
+
+emailjs.init("o1-oojKRFXS-To1_v"); 
+
+
+function sendEmail(toEmail, username, password) {
+    const templateParams = {
+        to_email: toEmail,
+        username: username,
+        password: password,
+    };
+
+    emailjs.send('service_n3ewjet', 'template_3vzhn0w', templateParams)
+        .then(response => {
+            console.log('Email sent successfully:', response);
+            toast.success('Email sent successfully!');
+        })
+        .catch(error => {
+            console.error('Error sending email:', error);
+            toast.error('Failed to send email.');
+        });
+}
 
 function StaffForm({ open, onClose, onSubmit }) {
     const initialFormState = {
-        roleId: '3', // Start with blank role
+        roleId: '3', // Start with staff role
         username: '',
         fullName: '',
         gender: '', 
@@ -24,11 +46,13 @@ function StaffForm({ open, onClose, onSubmit }) {
 
     const [formState, setFormState] = React.useState(initialFormState);
     const [errors, setErrors] = React.useState({});
+    const [existingEmails, setExistingEmails] = React.useState([]);
 
     const handleChange = (e) => {
         setFormState({ ...formState, [e.target.name]: e.target.value });
     };
 
+    // Function to validate the form
     const validate = () => {
         const newErrors = {};
         if (!formState.username) newErrors.username = 'Username is required';
@@ -37,6 +61,8 @@ function StaffForm({ open, onClose, onSubmit }) {
             newErrors.email = 'Email is required';
         } else if (!/\S+@\S+\.\S+/.test(formState.email)) {
             newErrors.email = 'Email address is invalid';
+        } else if (existingEmails.includes(formState.email.toLowerCase())) {
+            newErrors.email = 'Email already exists';
         }
         if (!formState.password) newErrors.password = 'Password is required';
         if (!formState.gender) newErrors.gender = 'Gender is required';
@@ -48,14 +74,33 @@ function StaffForm({ open, onClose, onSubmit }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (validate()) {
+            
             onSubmit(formState);
-            //toast.success('New staff added successfully');
+
+           
+            sendEmail(formState.email, formState.username, formState.password);
+
             setFormState(initialFormState);
             onClose();
         } else {
             toast.error('Please fix the validation errors');
         }
     };
+
+   
+    React.useEffect(() => {
+        async function fetchExistingEmails() {
+            try {
+                const response = await fetch('http://localhost:5188/api/User/GetUsers');
+                const data = await response.json();
+                const emails = data.map(user => user.email.toLowerCase());
+                setExistingEmails(emails);
+            } catch (error) {
+                console.error('Error fetching existing emails:', error);
+            }
+        }
+        fetchExistingEmails();
+    }, []);
 
     return (
         <Dialog open={open} onClose={onClose} aria-labelledby="form-dialog-title">
@@ -143,7 +188,6 @@ function StaffForm({ open, onClose, onSubmit }) {
                     helperText={errors.gender}
                     InputProps={{ style: { marginBottom: 10 } }}
                 />
-
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>Cancel</Button>

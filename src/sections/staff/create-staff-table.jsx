@@ -12,9 +12,7 @@ import { InputLabel, FormControl } from '@mui/material';
 import { toast } from 'react-toastify';
 import emailjs from 'emailjs-com';
 
-
-emailjs.init("o1-oojKRFXS-To1_v"); 
-
+emailjs.init("o1-oojKRFXS-To1_v");
 
 function sendEmail(toEmail, username, password) {
     const templateParams = {
@@ -46,14 +44,13 @@ function StaffForm({ open, onClose, onSubmit }) {
 
     const [formState, setFormState] = React.useState(initialFormState);
     const [errors, setErrors] = React.useState({});
-    const [existingEmails, setExistingEmails] = React.useState([]);
 
     const handleChange = (e) => {
         setFormState({ ...formState, [e.target.name]: e.target.value });
     };
 
     // Function to validate the form
-    const validate = () => {
+    const validate = async () => {
         const newErrors = {};
         if (!formState.username) newErrors.username = 'Username is required';
         if (!formState.fullName) newErrors.fullName = 'Full Name is required';
@@ -61,8 +58,8 @@ function StaffForm({ open, onClose, onSubmit }) {
             newErrors.email = 'Email is required';
         } else if (!/\S+@\S+\.\S+/.test(formState.email)) {
             newErrors.email = 'Email address is invalid';
-        } else if (existingEmails.includes(formState.email.toLowerCase())) {
-            newErrors.email = 'Email already exists';
+        } else if(checkEmailExists(formState.email)) {                        
+                newErrors.email = 'Email already exists';            
         }
         if (!formState.password) newErrors.password = 'Password is required';
         if (!formState.gender) newErrors.gender = 'Gender is required';
@@ -71,36 +68,31 @@ function StaffForm({ open, onClose, onSubmit }) {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    const checkEmailExists = async (email) => {
+        try {
+            const response = await fetch('http://localhost:5188/api/User/GetUsers');
+            const data = await response.json();
+            const emails = data.map(user => user.email.toLowerCase());
+            return emails.includes(email.toLowerCase());
+        } catch (error) {
+            console.error('Error fetching existing emails:', error);
+            toast.error('Error checking email existence');
+            return false; // Assume email does not exist if there's an error
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (validate()) {
-            
+        const isValid = await validate();
+        if (isValid) {
             onSubmit(formState);
-
-           
             sendEmail(formState.email, formState.username, formState.password);
-
             setFormState(initialFormState);
             onClose();
         } else {
             toast.error('Please fix the validation errors');
         }
     };
-
-   
-    React.useEffect(() => {
-        async function fetchExistingEmails() {
-            try {
-                const response = await fetch('http://localhost:5188/api/User/GetUsers');
-                const data = await response.json();
-                const emails = data.map(user => user.email.toLowerCase());
-                setExistingEmails(emails);
-            } catch (error) {
-                console.error('Error fetching existing emails:', error);
-            }
-        }
-        fetchExistingEmails();
-    }, []);
 
     return (
         <Dialog open={open} onClose={onClose} aria-labelledby="form-dialog-title">
@@ -204,4 +196,5 @@ StaffForm.propTypes = {
 };
 
 export default StaffForm;
+
 

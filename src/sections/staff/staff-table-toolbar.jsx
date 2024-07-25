@@ -59,5 +59,3 @@ UserTableToolbar.propTypes = {
   onFilterName: PropTypes.func,
   onDeleteSelected: PropTypes.func,
 };
-
-

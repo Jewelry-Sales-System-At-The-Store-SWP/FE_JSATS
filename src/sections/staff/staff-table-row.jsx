@@ -20,6 +20,9 @@ import Iconify from 'src/components/iconify';
 import StaffEditForm from './staff-edit-modal';
 import StaffDeleteForm from './staff-del-modal';
 
+// Function to get the JWT token from local storage
+const getToken = () => localStorage.getItem('token');
+
 export default function UserTableRow({
   userId,
   userName,
@@ -28,7 +31,7 @@ export default function UserTableRow({
   roleName,
   counterNumber,
   handleClick,
-  getStaff, // Add getStaff prop
+  getStaff,
 }) {
   const [open, setOpen] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -78,13 +81,15 @@ export default function UserTableRow({
         {
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`, // Include the JWT token
           },
         }
       );
 
       if (res.status === 200) {
+        toast.success(`Staff member updated successfully`);
+        getStaff(); // Refresh the staff list after successful edit
         
-        getStaff(); // Refresh data after successful edit
       } else {
         toast.error('Failed to update staff');
       }
@@ -98,11 +103,16 @@ export default function UserTableRow({
   const onDelete = async () => {
     try {
       const res = await axios.delete(
-        `http://localhost:5188/api/User/DeleteUser/${userId}`
+        `http://localhost:5188/api/User/DeleteUser/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`, // Include the JWT token
+          },
+        }
       );
       if (res.status === 200) {
-       
-        getStaff(); // Refresh data after successful delete
+        toast.success(`Staff member deleted successfully`);
+        getStaff(); // Refresh the staff list after successful delete
       } else {
         toast.error('Failed to delete staff');
       }
@@ -188,7 +198,14 @@ export default function UserTableRow({
       <StaffEditForm
         open={editOpen}
         onClose={handleEditClose}
-        staff={{ userId, username: userName, email, roleName, counterNumber }}
+        staff={{
+          roleId: roleName === 'Manager' ? '2' : '3',
+          username: userName,
+          fullName: userName,
+          gender: 'gender', // Replace 'gender' with actual gender field from your data
+          email,
+          status: true,
+        }}
         onSubmit={onSubmit}
       />
 
@@ -210,7 +227,9 @@ UserTableRow.propTypes = {
   counterNumber: PropTypes.number.isRequired,
   selected: PropTypes.bool.isRequired,
   handleClick: PropTypes.func.isRequired,
-  getStaff: PropTypes.func.isRequired, 
+  getStaff: PropTypes.func.isRequired,
 };
+
+
 
 

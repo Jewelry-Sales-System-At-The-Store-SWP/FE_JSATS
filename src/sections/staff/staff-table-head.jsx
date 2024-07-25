@@ -67,4 +67,3 @@ UserTableHead.propTypes = {
   onRequestSort: PropTypes.func,
   onSelectAllClick: PropTypes.func,
 };
-
